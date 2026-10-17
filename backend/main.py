@@ -12,6 +12,8 @@ from services.audio_service import get_or_generate_audio, AUDIO_CACHE_DIR
 from services.vision_service import vision_service
 from services.judge_service import judge_service
 
+BASE_DIR = Path(__file__).resolve().parent
+
 app = FastAPI(
     title="MachineryCopilot API",
     description="Centrifugal Pump Vernacular Diagnostic Assistant — Manual-Grounded + LLM-as-Judge",
