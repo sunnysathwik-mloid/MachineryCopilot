@@ -1,0 +1,65 @@
+[
+  {
+    "id": "manual_pump_001",
+    "equipment": "Industrial Centrifugal Pump",
+    "symptoms": ["seal leakage", "fluid dripping", "abnormal high-pitch cavitation noise", "loss of pressure"],
+    "possible_causes": ["Mechanical seal wear", "Dry running", "Impeller imbalance", "Suction pipe obstruction"],
+    "safety_precautions": ["Isolate electrical power and lock out/tag out (LOTO).", "Depressurize pump casing and allow liquid to cool before opening."],
+    "diagnostic_steps": [
+      "Step 1: Check casing temperature and inspect mechanical seal gland for fluid weeping.",
+      "Step 2: Inspect suction and discharge pressure gauges for pressure fluctuations or drop.",
+      "Step 3: Listen for gravel-like rattling sound indicating cavitation; verify NPSH and clear suction strainer.",
+      "Step 4: Tighten gland bolts evenly or replace degraded mechanical seal packing."
+    ],
+    "vernacular_instructions": {
+      "ta": "படி 1: பம்பை உடனடியாக அணைத்து லாக்-அவுட் செய்யவும். படி 2: மெக்கானிக்கல் சீல் மற்றும் கேசிங் பகுதியில் திரவ கசிவு உள்ளதா என சரிபார்க்கவும். படி 3: உறிஞ்சும் வால்வு அடைப்பை நீக்கி புதிய சீல் பொருத்தவும்.",
+      "hi": "चरण 1: पंप की बिजली तुरंत बंद करें और एलओटीओ (LOTO) लगाएं। चरण 2: मैकेनिकल सील से तरल रिसाव की जांच करें। चरण 3: सक्शन वाल्व का कचरा साफ करें और जरूरत पड़ने पर सील बदलें।",
+      "te": "దశ 1: పంపు విద్యుత్ సరఫరాను వెంటనే ఆపివేయండి. దశ 2: మెకానికల్ సీల్ వద్ద ద్రవ లీకేజీని తనిఖీ చేయండి. దశ 3: చూషణ వాల్వ్ అడ్డంకిని తొలగించి సీల్ మార్చండి.",
+      "kn": "ಹಂತ 1: ಪಂಪ್ ವಿದ್ಯುತ್ ಸರಬರಾಜನ್ನು ತಕ್ಷಣ ಆಫ್ ಮಾಡಿ. ಹಂತ 2: ಮೆಕ್ಯಾನಿಕಲ್ ಸೀಲ್ ಸೋರಿಕೆಯನ್ನು ಪರಿಶೀಲಿಸಿ. ಹಂತ 3: ಸಕ್ಷನ್ ವಾಲ್ವ್ ಸ್ವಚ್ಛಗೊಳಿಸಿ ಅಗತ್ಯವಿದ್ದರೆ ಸೀಲ್ ಬದಲಾಯಿಸಿ.",
+      "mr": "पायरी 1: पंपाचा वीज पुरवठा त्वरित बंद करा. पायरी 2: मेकॅनिकल सीलमधून द्रव गळती होत आहे का ते तपासा. पायरी 3: सक्शन व्हॉल्व्ह स्वच्छ करा आणि आवश्यक असल्यास सील बदला.",
+      "en": "Step 1: Shut down pump power and apply Lockout/Tagout. Step 2: Inspect mechanical seal for fluid leakage. Step 3: Clear suction strainer blockage and replace damaged seal."
+    }
+  },
+  {
+    "id": "manual_motor_002",
+    "equipment": "3-Phase Induction Motor",
+    "symptoms": ["overheating", "burning odor", "excessive vibration", "tripping circuit breaker", "humming sound"],
+    "possible_causes": ["Bearing failure / lack of lubrication", "Phase imbalance or single phasing", "Cooling fan cowl clogged with debris", "Rotor winding fault"],
+    "safety_precautions": ["Do not touch motor frame directly without thermal PPE.", "Disconnect mains circuit breaker before inspecting terminal box."],
+    "diagnostic_steps": [
+      "Step 1: Measure frame surface temperature using IR thermometer (alert if > 85°C).",
+      "Step 2: Inspect cooling fan cowl and fins for oil, dust, or textile lint clogging.",
+      "Step 3: Measure phase-to-phase resistance across terminal block with a multimeter.",
+      "Step 4: Rotate shaft manually (unpowered) to detect bearing grinding or axial play."
+    ],
+    "vernacular_instructions": {
+      "ta": "படி 1: மோட்டாரின் மின்சாரத்தை அணைக்கவும். படி 2: கூலிங் ஃபேன் மற்றும் வென்டிலேஷன் துவாரங்களில் உள்ள தூசியை சுத்தம் செய்யவும். படி 3: பேரிங் சுழற்சியை கையால் சுழற்றி உராய்வு உள்ளதா என சோதிக்கவும்.",
+      "hi": "चरण 1: मोटर को तुरंत बंद करें और ठंडा होने दें। चरण 2: कूलिंग फैन और एयर वेंट्स से धूल-कचरा साफ करें। चरण 3: मोटर की बेयरिंग में ग्रिसिंग करें और शाफ्ट का घुमाव जांचें।",
+      "te": "దశ 1: మోటారును తక్షణమే ఆపివేయండి. దశ 2: కూలింగ్ ఫ్యాన్ మరియు ఎయిర్ వెంట్లలోని దుమ్మును శుభ్రం చేయండి. దశ 3: బేరింగ్‌లను తనిఖీ చేసి లూబ్రికేషన్ అందించండి.",
+      "kn": "ಹಂತ 1: ಮೋಟಾರ್ ಅನ್ನು ತಕ್ಷಣವೇ ಆಫ್ ಮಾಡಿ. ಹಂತ 2: ಕೂಲಿಂಗ್ ಫ್ಯಾನ್ ಮತ್ತು ವೆಂಟ್‌ಗಳಲ್ಲಿನ ಕಸವನ್ನು ಸ್ವಚ್ಛಗೊಳಿಸಿ. ಹಂತ 3: ಬೇರಿಂಗ್‌ಗಳಿಗೆ ಲೂಬ್ರಿಕೇಶನ್ ಮಾಡಿ ಶಾಫ್ಟ್ ಪರೀಕ್ಷಿಸಿ.",
+      "mr": "पायरी 1: मोटार ताबडतोब बंद करा आणि थंड होऊ द्या. पायरी 2: कुलिंग फॅन आणि व्हेंट्समधील धूळ साफ करा. पायरी 3: बेअरिंग तपासा आणि ग्रीसिंग करा.",
+      "en": "Step 1: De-energize motor immediately and verify temperature. Step 2: Clear cooling fin obstructions. Step 3: Check bearing rotation and phase resistance."
+    }
+  },
+  {
+    "id": "manual_compressor_003",
+    "equipment": "Rotary Screw Air Compressor",
+    "symptoms": ["oil carryover in air line", "high discharge temperature", "inability to build pressure", "relief valve blowing"],
+    "possible_causes": ["Air/oil separator element saturated", "Minimum pressure valve stuck", "Thermostatic valve stuck open", "Dirty air intake filter"],
+    "safety_precautions": ["Vent internal reservoir pressure to 0 bar prior to opening separator chamber.", "Ensure auto-restart warning signs are respected."],
+    "diagnostic_steps": [
+      "Step 1: Check differential pressure indicator on the air/oil separator canister.",
+      "Step 2: Inspect oil scavenger line sight glass for clear return flow.",
+      "Step 3: Replace intake air filter if differential vacuum exceeds 25 mbar.",
+      "Step 4: Service the minimum pressure valve piston and seal kit."
+    ],
+    "vernacular_instructions": {
+      "ta": "படி 1: கம்ப்ரசர் உள் அழுத்தத்தை முழுமையாக வெளியேற்றவும். படி 2: ஏர்-ஆயில் செப்பரேட்டர் ஃபில்டரை சரிபார்க்கவும். படி 3: ஆயில் லெவல் மற்றும் பிரஷர் வால்வை சோதிக்கவும்.",
+      "hi": "चरण 1: कंप्रेसर का आंतरिक दबाव शून्य करें। चरण 2: एयर-ऑयल सेपरेटर फिल्टर की जांच करें। चरण 3: न्यूनतम दबाव वाल्व और तेल स्तर की जांच करें।",
+      "te": "దశ 1: కంప్రెసర్ అంతర్గత పీడనాన్ని తగ్గించండి. దశ 2: ఎయిర్-ఆయిల్ సెపరేటర్ ఫిల్టర్‌ను తనిఖీ చేయండి. దశ 3: ఆయిల్ స్థాయి మరియు ప్రెజర్ వాల్వ్‌ను పరీక్షించండి.",
+      "kn": "ಹಂತ 1: ಸಂಕೋಚಕದ ಆಂತರಿಕ ಒತ್ತಡವನ್ನು ಶೂನ್ಯಕ್ಕೆ ತನ್ನಿ. ಹಂತ 2: ಏರ್-ಆಯಿಲ್ ಸೆಪರೇಟರ್ ಫಿಲ್ಟರ್ ಪರಿಶೀಲಿಸಿ. ಹಂತ 3: ಕನಿಷ್ಠ ಒತ್ತಡದ ವಾಲ್ವ್ ಪರೀಕ್ಷಿಸಿ.",
+      "mr": "पायरी 1: कॉम्प्रेसरचा अंतर्गत दाब पूर्णपणे बाहेर काढा. पायरी 2: एअर-ऑइल सेपरेटर फिल्टर तपासा. पायरी 3: ऑइल लेव्हल आणि प्रेशर व्हॉल्व्ह तपासा.",
+      "en": "Step 1: Vent internal pressure to 0 bar. Step 2: Inspect air/oil separator filter. Step 3: Test minimum pressure check valve."
+    }
+  }
+]
