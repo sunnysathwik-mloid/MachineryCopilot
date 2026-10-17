@@ -151,5 +151,67 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact sche
             "vernacular_audio_script": script,
         }
 
+    async def refine_pump_diagnosis(
+        self,
+        previous_diagnosis: Dict[str, Any],
+        corrective_notes: str,
+        language: str
+    ) -> Dict[str, Any]:
+        """
+        Stage 1b — Self-Correction / Refinement:
+        Triggered when LLM Judge scores below 7.0 or returns NEEDS_REVIEW.
+        Takes the previous diagnosis + Judge critique, and refines the steps
+        to strictly adhere to the OEM manual and safety protocols.
+        """
+        manual = get_pump_manual()
+        if self.client and corrective_notes:
+            try:
+                refine_prompt = f"""You are a certified industrial pump diagnostician.
+The LLM Safety & Compliance Judge evaluated your previous diagnosis and identified the following deficiencies:
+CRITIQUE FROM JUDGE:
+"{corrective_notes}"
+
+PREVIOUS DIAGNOSIS:
+{json.dumps(previous_diagnosis, ensure_ascii=False, indent=2)}
+
+OFFICIAL MANUAL (GROUND TRUTH):
+{json.dumps(manual, ensure_ascii=False, indent=2)}
+
+Please revise and improve the diagnosis:
+1. Ensure full compliance with all LOTO and safety requirements in the manual.
+2. Ensure diagnostic steps are exhaustive and directly traceable to the manual.
+3. Update the vernacular_audio_script ({language}) to clearly dictate all revised safety and repair steps.
+
+Return ONLY valid JSON with the exact diagnosis schema."""
+                response = self.client.generate_content(refine_prompt)
+                text = response.text.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                refined = json.loads(text.strip())
+                refined["self_healing_applied"] = True
+                return refined
+            except Exception as e:
+                print(f"[VisionService] Gemini refinement fell back: {e}")
+
+        # Deterministic offline refinement: ensure LOTO prefix and full OEM steps
+        refined = dict(previous_diagnosis)
+        fault_id = refined.get("fault_id", "F01")
+        step_key_map = {
+            "F01": "F01_seal_leakage",
+            "F02": "F02_cavitation",
+            "F03": "F03_bearing_failure",
+            "F04": "F04_impeller_wear"
+        }
+        step_key = step_key_map.get(fault_id, "F01_seal_leakage")
+        reference_steps = manual.get("diagnostic_steps", {}).get(step_key, [])
+        refined["diagnostic_steps"] = list(reference_steps)
+        refined["safety_lockout_required"] = True
+        refined["self_healing_applied"] = True
+        return refined
+
 
 vision_service = MachineryVisionService()

@@ -11,6 +11,10 @@ export interface JudgeResult {
   verdict: 'PASS' | 'NEEDS_REVIEW';
   judge_reasoning: string;
   corrective_notes: string;
+  retry_count?: number;
+  original_score?: number | null;
+  self_healing_applied?: boolean;
+  judge_source?: string;
 }
 
 export interface SessionTurn {

@@ -47,6 +47,10 @@ class JudgeResult(BaseModel):
     verdict: str          # "PASS" | "NEEDS_REVIEW"
     judge_reasoning: str
     corrective_notes: str
+    retry_count: int = 0
+    original_score: Optional[float] = None
+    self_healing_applied: bool = False
+    judge_source: str = "gemini_1.5_flash"
 
 class DiagnoseResponse(BaseModel):
     equipment_type: str
@@ -132,15 +136,42 @@ async def diagnose_pump(
         language=language
     )
 
-    # ── Stage 2: Judge (runs concurrently with audio generation) ──
-    judge_result, (audio_filename, audio_rel_url, is_pregenerated) = await asyncio.gather(
-        judge_service.judge_diagnosis(diagnosis, language),
-        asyncio.to_thread(
-            get_or_generate_audio,
-            diagnosis.get("vernacular_audio_script", "Follow safety protocol."),
-            language,
-            "step_1"
+    # ── Stage 2: Initial Judge Evaluation ──
+    judge_result = await judge_service.judge_diagnosis(diagnosis, language)
+
+    # ── Critique & Self-Correction Retry Loop ──
+    # If LLM Judge fails (verdict is NEEDS_REVIEW or score < 7.0), trigger self-correction retry
+    retry_count = 0
+    original_score = None
+    self_healing_applied = False
+
+    if judge_result.get("verdict") == "NEEDS_REVIEW" or judge_result.get("overall_score", 10.0) < 7.0:
+        retry_count = 1
+        original_score = judge_result.get("overall_score")
+        corrective_feedback = judge_result.get("corrective_notes") or "Ensure full LOTO compliance and all manual repair steps."
+        print(f"[Self-Healing] Judge verdict NEEDS_REVIEW (Score: {original_score}). Retrying with critique feedback: {corrective_feedback}")
+
+        # Refine diagnosis based on Judge critique
+        refined_diagnosis = await vision_service.refine_pump_diagnosis(
+            previous_diagnosis=diagnosis,
+            corrective_notes=corrective_feedback,
+            language=language
         )
+
+        # Re-judge refined diagnosis
+        rejudge_result = await judge_service.judge_diagnosis(refined_diagnosis, language)
+        print(f"[Self-Healing] Re-judge complete: Score {original_score} -> {rejudge_result.get('overall_score')} ({rejudge_result.get('verdict')})")
+
+        diagnosis = refined_diagnosis
+        judge_result = rejudge_result
+        self_healing_applied = True
+
+    # ── Stage 3: Audio Generation ──
+    audio_filename, audio_rel_url, is_pregenerated = await asyncio.to_thread(
+        get_or_generate_audio,
+        diagnosis.get("vernacular_audio_script", "Follow safety protocol."),
+        language,
+        "step_1"
     )
 
     full_audio_url = f"http://localhost:8000{audio_rel_url}"
@@ -168,7 +199,11 @@ async def diagnose_pump(
         overall_score=j["overall_score"],
         verdict=j["verdict"],
         judge_reasoning=j["judge_reasoning"],
-        corrective_notes=j.get("corrective_notes", "")
+        corrective_notes=j.get("corrective_notes", ""),
+        retry_count=retry_count,
+        original_score=original_score,
+        self_healing_applied=self_healing_applied,
+        judge_source=j.get("judge_source", "gemini_1.5_flash")
     )
 
     return DiagnoseResponse(
@@ -190,6 +225,17 @@ async def diagnose_pump(
     )
 
 
+# ─── Production Frontend Mounting (for Cloud Run & Docker) ───────────────────
+FRONTEND_DIST = BASE_DIR.parent / "frontend_dist"
+if not FRONTEND_DIST.exists():
+    FRONTEND_DIST = BASE_DIR / "frontend_dist"
+
+if FRONTEND_DIST.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import os
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)

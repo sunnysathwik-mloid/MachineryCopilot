@@ -1,6 +1,6 @@
 import React from 'react';
 import { JudgeResult } from '../types/diagnostic';
-import { ShieldCheck, AlertTriangle, BookOpen, Shield, CheckSquare, Languages, Award } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, BookOpen, Shield, CheckSquare, Languages, Award, Sparkles, RefreshCw } from 'lucide-react';
 
 interface JudgePanelProps {
   judge: JudgeResult;
@@ -106,6 +106,22 @@ export const JudgePanel: React.FC<JudgePanelProps> = ({ judge }) => {
           </div>
         </div>
       </div>
+
+      {/* Self-Healing / Retry Badge */}
+      {judge.self_healing_applied && (
+        <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start space-x-2.5 text-amber-200">
+          <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5 animate-pulse" />
+          <div className="text-xs">
+            <span className="font-bold uppercase tracking-wider text-amber-300">
+              Self-Healing Critique Loop Activated:
+            </span>{' '}
+            Initial diagnosis was scored{' '}
+            <span className="font-mono font-bold text-rose-300">{judge.original_score?.toFixed(1) ?? 'N/A'}/10 (NEEDS REVIEW)</span>
+            . Generator automatically revised steps based on Judge critique and achieved{' '}
+            <span className="font-mono font-bold text-emerald-300">{judge.overall_score.toFixed(1)}/10 ({judge.verdict})</span>!
+          </div>
+        </div>
+      )}
 
       {/* 4 Criteria Score Bars */}
       <div className="space-y-3 mb-4">

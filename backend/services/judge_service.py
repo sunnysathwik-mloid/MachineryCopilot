@@ -104,21 +104,40 @@ Return ONLY a valid JSON object (no markdown, no backticks):
   "corrective_notes": "<Specific improvements needed, or empty string if PASS>"
 }}"""
 
-                response = self.client.generate_content(judge_prompt)
-                text = response.text.strip()
-                if text.startswith("```json"):
-                    text = text[7:]
-                if text.startswith("```"):
-                    text = text[3:]
-                if text.endswith("```"):
-                    text = text[:-3]
-                return json.loads(text.strip())
+                # Retry loop for Gemini judge call (handles transient rate limits & JSON formatting errors)
+                max_api_retries = 3
+                last_err = None
+                for attempt in range(1, max_api_retries + 1):
+                    try:
+                        response = self.client.generate_content(judge_prompt)
+                        text = response.text.strip()
+                        if text.startswith("```json"):
+                            text = text[7:]
+                        if text.startswith("```"):
+                            text = text[3:]
+                        if text.endswith("```"):
+                            text = text[:-3]
+                        result = json.loads(text.strip())
+                        result["judge_attempt"] = attempt
+                        result["judge_source"] = "gemini_1.5_flash"
+                        return result
+                    except Exception as err:
+                        last_err = err
+                        print(f"[JudgeService] Attempt {attempt}/{max_api_retries} failed: {err}")
+                        if attempt < max_api_retries:
+                            import asyncio
+                            await asyncio.sleep(0.8 * attempt)
+
+                print(f"[JudgeService] All {max_api_retries} Gemini judge attempts failed: {last_err}. Falling back to heuristic.")
 
             except Exception as e:
                 print(f"[JudgeService] Gemini judge fell back to heuristic: {e}")
 
         # Offline heuristic judge
-        return self._heuristic_judge(diagnosis, language)
+        res = self._heuristic_judge(diagnosis, language)
+        res["judge_attempt"] = 1
+        res["judge_source"] = "heuristic_offline"
+        return res
 
     def _heuristic_judge(self, diagnosis: Dict[str, Any], language: str) -> Dict[str, Any]:
         """
