@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, RefreshCw, Upload, Sparkles, AlertCircle, Wrench } from 'lucide-react';
 
 interface CameraCaptureProps {
-  onCaptureImage: (blob: Blob, previewUrl: string, sampleTitle?: string) => void;
+  onCaptureImage: (blob: Blob, previewUrl: string, sampleTitle?: string, suggestedNotes?: string) => void;
   disabled?: boolean;
 }
 
@@ -101,7 +101,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   };
 
   // Helper to load sample machinery preset
-  const loadPreset = (presetName: string, title: string, color1: string, color2: string) => {
+  const loadPreset = (presetName: string, title: string, color1: string, color2: string, suggestedNotes?: string) => {
     // Generate a high-contrast industrial SVG canvas snapshot for immediate demoing
     const canvas = document.createElement('canvas');
     canvas.width = 800;
@@ -171,7 +171,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     canvas.toBlob((blob) => {
       if (blob) {
         const previewUrl = URL.createObjectURL(blob);
-        onCaptureImage(blob, previewUrl, title);
+        onCaptureImage(blob, previewUrl, title, suggestedNotes);
       }
     }, 'image/jpeg', 0.95);
   };
@@ -297,14 +297,14 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
         )}
       </div>
 
-      {/* Instant Demo Presets for Quick Hackathon Judging */}
+      {/* Pump-Only Demo Presets */}
       <div className="p-4 bg-slate-950/80 border-t border-slate-800">
         <div className="flex items-center justify-between mb-2.5">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            Quick Demo Presets (Instant Offline Test)
+            Pump Fault Presets — ISO 5199 / API 610
           </span>
-          <span className="text-[10px] text-slate-500 font-mono">One-click evaluation</span>
+          <span className="text-[10px] text-slate-500 font-mono">One-click judge-ready</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -314,19 +314,20 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             onClick={() =>
               loadPreset(
                 'pump',
-                'Centrifugal Pump Seal Leak',
+                'Centrifugal Pump — Seal Weepage (F01)',
                 '#334155',
-                '#1e293b'
+                '#1e293b',
+                'Fluid leakage observed near casing gland, weeping > 10 drops per minute'
               )
             }
             className="flex items-center space-x-2 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition group active:scale-[0.98]"
           >
             <div className="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
-              P1
+              F01
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-200 truncate">Pump Seal Leak</div>
-              <div className="text-[10px] text-slate-400">Cavitation & Dripping</div>
+              <div className="text-xs font-semibold text-slate-200 truncate">Seal Weepage</div>
+              <div className="text-[10px] text-slate-400">Gland drip &gt; 10 drops/min</div>
             </div>
           </button>
 
@@ -335,20 +336,21 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             disabled={disabled}
             onClick={() =>
               loadPreset(
-                'motor',
-                '3-Phase Induction Motor Overheat',
-                '#475569',
-                '#0f172a'
+                'pump',
+                'Centrifugal Pump — Cavitation (F02)',
+                '#1e3a5f',
+                '#0c1a2e',
+                'Unusual crackling gravel noise and sudden drop in discharge pressure, low suction head'
               )
             }
             className="flex items-center space-x-2 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition group active:scale-[0.98]"
           >
             <div className="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs">
-              M2
+              F02
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-200 truncate">Motor Overheating</div>
-              <div className="text-[10px] text-slate-400">Bearing Stator Issue</div>
+              <div className="text-xs font-semibold text-slate-200 truncate">Cavitation</div>
+              <div className="text-[10px] text-slate-400">Crackling + pressure drop</div>
             </div>
           </button>
 
@@ -357,20 +359,21 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             disabled={disabled}
             onClick={() =>
               loadPreset(
-                'compressor',
-                'Air Compressor Pressure Drop',
-                '#3b4252',
-                '#181a1f'
+                'pump',
+                'Centrifugal Pump — Bearing Failure (F03)',
+                '#3b2c1a',
+                '#1a1209',
+                'Bearing housing temperature > 75°C with severe axial vibration and rumbling noise'
               )
             }
             className="flex items-center space-x-2 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 text-left transition group active:scale-[0.98]"
           >
-            <div className="w-7 h-7 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold text-xs">
-              C3
+            <div className="w-7 h-7 rounded-lg bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold text-xs">
+              F03
             </div>
             <div className="min-w-0">
-              <div className="text-xs font-semibold text-slate-200 truncate">Air Compressor</div>
-              <div className="text-[10px] text-slate-400">Relief Valve Venting</div>
+              <div className="text-xs font-semibold text-slate-200 truncate">Bearing Failure</div>
+              <div className="text-[10px] text-slate-400">Housing &gt; 75°C / rumble</div>
             </div>
           </button>
         </div>

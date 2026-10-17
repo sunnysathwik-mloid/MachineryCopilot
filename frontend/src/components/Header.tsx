@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cpu, Database, Volume2, History, RotateCcw, ShieldAlert } from 'lucide-react';
+import { Cpu, Volume2, History, RotateCcw, ShieldAlert, Scale, BookOpen } from 'lucide-react';
 
 interface HeaderProps {
   turnCount: number;
@@ -25,25 +25,29 @@ export const Header: React.FC<HeaderProps> = ({
               <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
                 Machinery<span className="text-amber-400">Copilot</span>
               </h1>
-              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-400/10 text-amber-400 border border-amber-400/30 rounded-full">
-                Hackathon Prototype
+              <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-cyan-400/10 text-cyan-400 border border-cyan-400/30 rounded-full">
+                Pump Specialist
               </span>
             </div>
             <p className="text-xs text-slate-400 hidden sm:block">
-              Multimodal Vernacular Field Diagnostic Assistant
+              Manual-Grounded Generator · LLM-as-Judge · Vernacular Audio · ISO 5199 / API 610
             </p>
           </div>
         </div>
 
-        {/* AI & Stack Badges */}
+        {/* AI Stack Badges */}
         <div className="hidden md:flex items-center space-x-2 text-xs">
           <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300">
             <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="font-mono">Gemini 1.5 Flash</span>
+            <span className="font-mono">Gemini Generator</span>
           </div>
           <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300">
-            <Database className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="font-mono">ChromaDB RAG</span>
+            <Scale className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="font-mono">LLM Judge</span>
+          </div>
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300">
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span className="font-mono">Pump Manual</span>
           </div>
           <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700/60 text-slate-300">
             <Volume2 className="w-3.5 h-3.5 text-purple-400" />

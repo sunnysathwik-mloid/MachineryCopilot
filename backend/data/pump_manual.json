@@ -1,0 +1,105 @@
+{
+  "equipment": "Industrial Centrifugal Pump",
+  "model_reference": "ISO 5199 / API 610 Standard",
+  "manufacturer_notes": "Applicable to end-suction and between-bearing centrifugal pumps rated 1–500 kW in industrial facilities.",
+
+  "common_faults": [
+    {
+      "fault_id": "F01",
+      "name": "Mechanical Seal Weepage / Leakage",
+      "indicators": ["Fluid dripping from gland area", "Oil or water marks on baseplate", "Audible hissing near seal face"],
+      "severity": "CRITICAL",
+      "safety_lockout_required": true
+    },
+    {
+      "fault_id": "F02",
+      "name": "Cavitation",
+      "indicators": ["Crackling or gravel-like noise from casing", "Erratic discharge pressure", "Vibration at impeller frequency"],
+      "severity": "HIGH",
+      "safety_lockout_required": false
+    },
+    {
+      "fault_id": "F03",
+      "name": "Bearing Failure",
+      "indicators": ["High bearing housing temperature (>75°C)", "Low-frequency rumble from bearing end", "Excessive shaft axial play"],
+      "severity": "HIGH",
+      "safety_lockout_required": true
+    },
+    {
+      "fault_id": "F04",
+      "name": "Impeller Wear / Erosion",
+      "indicators": ["Progressive head reduction", "Increased power consumption", "Solids in pumped fluid"],
+      "severity": "MODERATE",
+      "safety_lockout_required": false
+    }
+  ],
+
+  "loto_procedure": [
+    "LOTO-1: De-energise the motor at the main 415V/11kV switchboard. Lock the isolator using a padlock and attach a personal danger tag.",
+    "LOTO-2: Close and lock the suction and discharge isolation valves.",
+    "LOTO-3: Open the casing vent valve to confirm zero pressure. Wait until gauge reads 0 bar.",
+    "LOTO-4: Open casing drain; allow liquid to drain completely and cool to ambient temperature before touching.",
+    "LOTO-5: Verify isolation is effective using a calibrated voltage tester at the motor terminal box."
+  ],
+
+  "diagnostic_steps": {
+    "F01_seal_leakage": [
+      "Step 1: Carry out full LOTO before touching any seal components.",
+      "Step 2: Inspect the gland area for continuous drip (>10 drops/min = unacceptable per ISO 5199 Cl. 8.3).",
+      "Step 3: Check mechanical seal flush piping (Plan 11/13) for blockage or reversed flow.",
+      "Step 4: Measure seal chamber temperature; if >60°C dry-running is suspected.",
+      "Step 5: Remove the gland plate and inspect seal faces for grooves, cracks, or contamination.",
+      "Step 6: Replace seal faces and O-rings; re-set spring compression to manufacturer tolerance ±0.5 mm.",
+      "Step 7: Re-commission with water flush; confirm leakage <3 drops/min before returning to service."
+    ],
+    "F02_cavitation": [
+      "Step 1: Do NOT shut down abruptly; gradually throttle the discharge valve while monitoring suction pressure.",
+      "Step 2: Check suction pressure gauge; NPSH available must exceed NPSH required by minimum 0.5 m.",
+      "Step 3: Inspect suction strainer; clean if differential pressure across strainer exceeds 0.3 bar.",
+      "Step 4: Check liquid temperature; ensure it is below 85% of vapour pressure temperature.",
+      "Step 5: Verify pump is operating within 70–120% of Best Efficiency Point (BEP) flow range.",
+      "Step 6: If NPSH margin is insufficient, lower pump elevation or raise suction vessel level."
+    ],
+    "F03_bearing_failure": [
+      "Step 1: Complete full LOTO before opening bearing housing.",
+      "Step 2: Use IR thermometer; alert if temperature >75°C; shutdown if >95°C.",
+      "Step 3: Check oil level in bearing housing; top up to centre of sight glass with ISO VG 68 mineral oil.",
+      "Step 4: Check for water or foam contamination in oil; cloudy oil indicates water ingress — replace immediately.",
+      "Step 5: Rotate shaft by hand; replace bearings if grinding, roughness, or >0.05 mm axial play is detected.",
+      "Step 6: Fit new bearings (6208-2RS or equivalent); apply anti-fretting compound to housing bore."
+    ],
+    "F04_impeller_wear": [
+      "Step 1: Log current flow rate and head; compare against pump curve at installed speed.",
+      "Step 2: If flow has reduced >15% from baseline at same head, suspect wear-ring or impeller erosion.",
+      "Step 3: Complete LOTO and open casing after draining.",
+      "Step 4: Measure wear-ring clearance; replace if clearance exceeds 2× original value per API 610 Table 6.",
+      "Step 5: Inspect impeller vanes for erosion pitting; replace impeller if wall thickness <3 mm."
+    ]
+  },
+
+  "acceptable_tolerances": {
+    "seal_leakage_max_drops_per_min": 3,
+    "bearing_temp_alert_c": 75,
+    "bearing_temp_shutdown_c": 95,
+    "vibration_alert_mm_s": 4.5,
+    "vibration_shutdown_mm_s": 7.1,
+    "npsh_margin_min_m": 0.5,
+    "bep_operating_range_percent": [70, 120],
+    "wear_ring_clearance_multiplier_max": 2.0
+  },
+
+  "vernacular_instructions": {
+    "seal_leakage": {
+      "ta": "முதல் படி: பம்பு மின்சாரத்தை லாக்-அவுட் செய்யவும். இரண்டாம் படி: சீல் பகுதியில் திரவ கசிவு நிமிடத்திற்கு 10 சொட்டுக்கும் அதிகமாக உள்ளதா என சரிபார்க்கவும். மூன்றாம் படி: சீல் முகங்கள் மற்றும் O-ரிங்களை மாற்றவும்.",
+      "hi": "पहला कदम: पंप को लॉकआउट करें। दूसरा कदम: सील से प्रति मिनट 10 से अधिक बूँदें गिरती हैं तो तुरंत बंद करें। तीसरा कदम: सील फेस और O-रिंग बदलें।"
+    },
+    "cavitation": {
+      "ta": "முதல் படி: உறிஞ்சும் வால்வை கொஞ்சம் திறக்கவும். இரண்டாம் படி: சக்ஷன் ஸ்ட்ரெய்னரை சுத்தம் செய்யவும். மூன்றாம் படி: NPSH அளவு சரியாக உள்ளதா என சோதிக்கவும்.",
+      "hi": "पहला कदम: सक्शन स्ट्रेनर की जांच करें। दूसरा कदम: सक्शन दबाव गेज पढ़ें। तीसरा कदम: प्रवाह दर को BEP के 70-120% के भीतर बनाए रखें।"
+    },
+    "bearing_failure": {
+      "ta": "முதல் படி: பேரிங் ஹவுசிங் வெப்பநிலை 75°C க்கு மேல் இருந்தால் மின்சாரம் துண்டிக்கவும். இரண்டாம் படி: எண்ணெய் மட்டத்தை சரிபார்க்கவும். மூன்றாம் படி: பேரிங்களை மாற்றவும்.",
+      "hi": "पहला कदम: बेयरिंग 75°C से अधिक हो तो बंद करें। दूसरा कदम: तेल स्तर की जाँच करें। तीसरा कदम: नए बेयरिंग लगाएं।"
+    }
+  }
+}

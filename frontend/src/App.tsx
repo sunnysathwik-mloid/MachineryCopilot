@@ -38,13 +38,59 @@ export function App() {
   useEffect(() => {
     checkHealth();
     const interval = setInterval(checkHealth, 6000);
+
+    // Pre-stage F01 preset so user can immediately test with 1-click
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 600;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < 800; x += 40) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+        }
+        for (let y = 0; y < 600; y += 40) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+        }
+        const grad = ctx.createLinearGradient(200, 150, 600, 450);
+        grad.addColorStop(0, '#334155');
+        grad.addColorStop(1, '#1e293b');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.roundRect(220, 180, 360, 240, 24); ctx.fill();
+        ctx.lineWidth = 4; ctx.strokeStyle = '#f59e0b'; ctx.stroke();
+        ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(400, 300, 75, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 6; ctx.stroke();
+        ctx.fillStyle = '#f8fafc'; ctx.font = 'bold 24px monospace';
+        ctx.fillText('CENTRIFUGAL PUMP — SEAL WEEPAGE (F01)', 130, 100);
+        ctx.fillStyle = '#fbbf24'; ctx.font = '16px monospace';
+        ctx.fillText('ACTIVE FIELD DEFECT: MECHANICAL SEAL LEAKAGE', 130, 130);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const previewUrl = URL.createObjectURL(blob);
+            setImageBlob(blob);
+            setImagePreviewUrl(previewUrl);
+            setImageLabel('Centrifugal Pump — Seal Weepage (F01)');
+          }
+        }, 'image/jpeg', 0.95);
+      }
+    } catch (e) {
+      console.warn('Preset auto-stage error', e);
+    }
+
     return () => clearInterval(interval);
   }, []);
 
-  const handleCaptureImage = (blob: Blob, previewUrl: string, label?: string) => {
+  const handleCaptureImage = (blob: Blob, previewUrl: string, label?: string, suggestedNotes?: string) => {
     setImageBlob(blob);
     setImagePreviewUrl(previewUrl);
     setImageLabel(label || 'Field Camera Snapshot');
+    if (suggestedNotes) {
+      setWorkerNotes(suggestedNotes);
+    }
     setErrorMessage(null);
   };
 
@@ -263,7 +309,7 @@ export function App() {
                 {isLoading ? (
                   <>
                     <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Processing Vernacular RAG Pipeline...</span>
+                    <span>Running Generator → Judge Pipeline...</span>
                   </>
                 ) : (
                   <>
@@ -296,7 +342,7 @@ export function App() {
                     {imageLabel}
                   </p>
                   <p className="text-[10px] text-slate-500 font-mono">
-                    Ready for Gemini Flash Vision & RAG matching
+                    Ready for Gemini Flash Vision → Manual-Grounded Diagnosis
                   </p>
                 </div>
               </div>
@@ -310,7 +356,6 @@ export function App() {
               <DiagnosticCard
                 diagnosis={diagnosis}
                 language={selectedDialect}
-                imagePreviewUrl={imagePreviewUrl}
                 onReset={handleResetForm}
               />
             )}
@@ -343,7 +388,7 @@ export function App() {
       <footer className="border-t border-slate-800/80 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500 font-mono">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>MachineryCopilot • Multimodal Vernacular Diagnostic Engine</span>
-          <span>FastAPI + Gemini 1.5 Flash Vision + ChromaDB + gTTS</span>
+          <span>FastAPI + Gemini 1.5 Flash (Generator + Judge) + Pump Manual + gTTS</span>
         </div>
       </footer>
     </div>

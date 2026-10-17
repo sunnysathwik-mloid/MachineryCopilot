@@ -9,7 +9,23 @@ export default defineConfig({
     host: true,
     proxy: {
       '/audio': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/diagnose': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/history': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/health': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/manual': {
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },

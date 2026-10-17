@@ -10,20 +10,20 @@ export const ThinkingLoader: React.FC<ThinkingLoaderProps> = () => {
 
   const steps = [
     {
-      title: 'Multimodal Vision Analysis',
-      detail: 'Gemini 1.5 Flash inspecting optical defects, wear patterns & thermal discoloration',
+      title: 'Analyzing pump image with Gemini 1.5 Flash Vision...',
+      detail: 'Inspecting optical defects, wear patterns, thermal discoloration & seal condition',
       icon: Cpu,
       color: 'text-cyan-400',
     },
     {
-      title: 'Scanning Equipment Manual... Extracting Structured JSON',
-      detail: 'ChromaDB querying OEM troubleshooting manuals for torque, NPSH & seal tolerances',
+      title: 'Grounding response against ISO 5199 / API 610 Pump Manual...',
+      detail: 'Injecting full pump manual JSON — LOTO, tolerances, fault steps F01–F04',
       icon: Search,
       color: 'text-amber-400',
     },
     {
-      title: 'Synthesizing Vernacular Audio & Action Steps',
-      detail: 'Translating technical diagnostic into dialect-specific vocal speech via gTTS',
+      title: 'LLM Judge scoring response on 4 safety criteria...',
+      detail: 'Gemini Judge evaluating manual_grounding, safety_compliance, steps, vernacular',
       icon: Sparkles,
       color: 'text-purple-400',
     },
@@ -60,11 +60,11 @@ export const ThinkingLoader: React.FC<ThinkingLoaderProps> = () => {
               RAG Knowledge Pipeline Active
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
-              1.5s Deliberate Scan
+              1.5s Manual Scan
             </span>
           </div>
           <h3 className="text-base font-bold text-white tracking-tight">
-            Scanning Equipment Manual... Extracting Structured JSON
+            Grounding Against ISO 5199 / API 610 Pump Manual...
           </h3>
         </div>
       </div>

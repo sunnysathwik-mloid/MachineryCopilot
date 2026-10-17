@@ -1,6 +1,6 @@
 import { DiagnoseResponse, SessionTurn } from '../types/diagnostic';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export async function diagnoseMachinery(
   imageBlob: Blob | File,
@@ -43,8 +43,17 @@ export async function resetSessionHistory(): Promise<void> {
 }
 
 export function resolveAudioUrl(relativeOrAbsoluteUrl: string): string {
+  if (!relativeOrAbsoluteUrl) return '';
   if (relativeOrAbsoluteUrl.startsWith('http://') || relativeOrAbsoluteUrl.startsWith('https://')) {
+    try {
+      const url = new URL(relativeOrAbsoluteUrl);
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        return url.pathname;
+      }
+    } catch {
+      // ignore parsing error
+    }
     return relativeOrAbsoluteUrl;
   }
-  return `${API_BASE_URL}${relativeOrAbsoluteUrl.startsWith('/') ? '' : '/'}${relativeOrAbsoluteUrl}`;
+  return relativeOrAbsoluteUrl.startsWith('/') ? relativeOrAbsoluteUrl : `/${relativeOrAbsoluteUrl}`;
 }

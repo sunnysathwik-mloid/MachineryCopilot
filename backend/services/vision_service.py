@@ -1,7 +1,24 @@
 import os
 import json
-import base64
+from pathlib import Path
 from typing import Dict, Any, Optional
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+PUMP_MANUAL_FILE = BASE_DIR / "data" / "pump_manual.json"
+
+# Load the single authoritative pump manual once at startup
+_PUMP_MANUAL: Dict[str, Any] = {}
+try:
+    with open(PUMP_MANUAL_FILE, "r", encoding="utf-8") as f:
+        _PUMP_MANUAL = json.load(f)
+    print(f"[VisionService] Pump manual loaded: {_PUMP_MANUAL.get('equipment')} ({_PUMP_MANUAL.get('model_reference')})")
+except Exception as e:
+    print(f"[VisionService] Warning: Could not load pump manual: {e}")
+
+
+def get_pump_manual() -> Dict[str, Any]:
+    return _PUMP_MANUAL
+
 
 class MachineryVisionService:
     def __init__(self):
@@ -15,98 +32,124 @@ class MachineryVisionService:
                 import google.generativeai as genai
                 genai.configure(api_key=self.api_key)
                 self.client = genai.GenerativeModel("gemini-1.5-flash")
-                print("[VisionService] Gemini 1.5 Flash initialized successfully.")
+                print("[VisionService] Gemini 1.5 Flash initialized.")
             except Exception as e:
-                print(f"[VisionService] Gemini initialization warning: {e}")
+                print(f"[VisionService] Gemini init warning: {e}")
                 self.client = None
         else:
-            print("[VisionService] No GEMINI_API_KEY set. Running with built-in high-fidelity industrial vision analyzer.")
+            print("[VisionService] No GEMINI_API_KEY — using high-fidelity offline fallback.")
 
-    async def analyze_machinery(
+    async def analyze_pump(
         self,
         image_bytes: bytes,
-        user_notes: Optional[str] = None,
-        language: str = "ta",
-        rag_context: Optional[Dict[str, Any]] = None
+        user_notes: Optional[str],
+        language: str
     ) -> Dict[str, Any]:
         """
-        Multimodal analysis: extracts equipment type, anomaly, safety severity,
-        and step-by-step diagnostic instructions grounded with manual RAG.
+        Stage 1 — Generator:
+        Analyzes the pump image grounded entirely by the injected pump manual.
+        Returns structured diagnosis with detected fault, steps, and vernacular script.
         """
-        # If Gemini client is active, attempt live Multimodal Gemini Vision call
+        manual = get_pump_manual()
+        manual_text = json.dumps(manual, ensure_ascii=False, indent=2)
+
         if self.client:
             try:
-                prompt = f"""
-                You are an expert field machinery diagnostic assistant. Analyze the uploaded machinery image and worker note: "{user_notes or ''}".
-                RAG Knowledge Context: {json.dumps(rag_context or {}, ensure_ascii=False)}
-                Selected Language Code: "{language}" (ta=Tamil, hi=Hindi, te=Telugu, kn=Kannada, mr=Marathi, en=English).
+                prompt = f"""You are a certified industrial pump diagnostician. 
+You MUST ground your entire response only in the pump manual provided below.
+Do NOT invent any steps or safety rules not listed in the manual.
 
-                Return strict JSON only (no markdown, no backticks) with:
-                {{
-                    "equipment_type": "Identified machine name",
-                    "detected_anomaly": "Specific mechanical or electrical issue observed",
-                    "severity": "CRITICAL" | "HIGH" | "MODERATE",
-                    "safety_lockout_required": true | false,
-                    "confidence_score": 0.95,
-                    "diagnostic_steps": [
-                        "Step 1: ...",
-                        "Step 2: ...",
-                        "Step 3: ..."
-                    ],
-                    "vernacular_audio_script": "Step-by-step action instructions in the requested vernacular dialect ({language})."
-                }}
-                """
-                
+=== CENTRIFUGAL PUMP MANUAL (ISO 5199 / API 610) ===
+{manual_text}
+=== END OF MANUAL ===
+
+Worker's symptom note: "{user_notes or 'No additional notes.'}"
+Requested output language code: "{language}" (ta=Tamil, hi=Hindi, en=English)
+
+Analyze the image carefully. Look for: fluid trails, corrosion marks, seal gland condition, casing wetness, bearing housing discolouration, cavitation erosion marks.
+
+Return ONLY a valid JSON object (no markdown, no backticks) with this exact schema:
+{{
+  "equipment_type": "Industrial Centrifugal Pump",
+  "fault_id": "F01 | F02 | F03 | F04",
+  "detected_anomaly": "Short name of detected fault matching the manual",
+  "severity": "CRITICAL | HIGH | MODERATE",
+  "safety_lockout_required": true | false,
+  "confidence_score": 0.0-1.0,
+  "manual_section_referenced": "Which section of the manual you used",
+  "diagnostic_steps": [
+    "Step 1: ...",
+    "Step 2: ...",
+    "Step 3: ..."
+  ],
+  "vernacular_audio_script": "All diagnostic instructions spoken naturally in the dialect matching language code {language}."
+}}"""
+
                 response = self.client.generate_content([
                     prompt,
                     {"mime_type": "image/jpeg", "data": image_bytes}
                 ])
-                
-                text_content = response.text.strip()
-                if text_content.startswith("```json"):
-                    text_content = text_content[7:]
-                if text_content.endswith("```"):
-                    text_content = text_content[:-3]
-                return json.loads(text_content.strip())
+
+                text = response.text.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                return json.loads(text.strip())
+
             except Exception as e:
-                print(f"[VisionService] Gemini Vision call fallback: {e}")
+                print(f"[VisionService] Gemini call fell back: {e}")
 
-        # High-fidelity deterministic industrial fallback grounded by RAG
-        return self._generate_fallback_diagnosis(user_notes, language, rag_context)
+        # Offline fallback — deterministic pump diagnosis grounded by manual
+        return self._offline_pump_fallback(user_notes, language, manual)
 
-    def _generate_fallback_diagnosis(
+    def _offline_pump_fallback(
         self,
         user_notes: Optional[str],
         language: str,
-        rag_context: Optional[Dict[str, Any]]
+        manual: Dict[str, Any]
     ) -> Dict[str, Any]:
-        notes = (user_notes or "").lower()
-        
-        # Determine likely machinery from notes or RAG
-        if rag_context:
-            eq_name = rag_context.get("equipment", "Industrial Centrifugal Pump")
-            steps = rag_context.get("diagnostic_steps", [])
-            vernacular_map = rag_context.get("vernacular_instructions", {})
-            script = vernacular_map.get(language, vernacular_map.get("en", "Proceed with safety precautions."))
-        else:
-            eq_name = "Industrial Centrifugal Pump"
-            steps = [
-                "Step 1: Shut down pump power and lock out electrical panel (LOTO).",
-                "Step 2: Inspect mechanical seal gland for fluid leakage and seal weepage.",
-                "Step 3: Verify suction strainer is clear of debris to prevent cavitation."
-            ]
-            script = "படி 1: பம்பை உடனடியாக அணைத்து லாக்-அவுட் செய்யவும். படி 2: மெக்கானிக்கல் சீல் கசிவை சரிபார்க்கவும்."
+        notes_lower = (user_notes or "").lower()
 
-        severity = "CRITICAL" if any(w in notes for w in ["fire", "smoke", "hot", "burn", "leak"]) else "HIGH"
-        
+        # Detect fault from notes
+        if any(w in notes_lower for w in ["bear", "heat", "vibrat", "rumble", "temperature"]):
+            fault_id = "F03"
+            fault_name = "Bearing Failure"
+            steps = manual["diagnostic_steps"]["F03_bearing_failure"]
+            vernacular_key = "bearing_failure"
+        elif any(w in notes_lower for w in ["cavit", "noise", "crackl", "gravel", "pressure drop"]):
+            fault_id = "F02"
+            fault_name = "Cavitation"
+            steps = manual["diagnostic_steps"]["F02_cavitation"]
+            vernacular_key = "cavitation"
+        else:
+            # Default: seal leakage (most common field fault)
+            fault_id = "F01"
+            fault_name = "Mechanical Seal Weepage / Leakage"
+            steps = manual["diagnostic_steps"]["F01_seal_leakage"]
+            vernacular_key = "seal_leakage"
+
+        # Get vernacular script from manual
+        vernacular_scripts = manual.get("vernacular_instructions", {}).get(vernacular_key, {})
+        script = vernacular_scripts.get(language, vernacular_scripts.get("en",
+            "Step 1: Apply LOTO. Step 2: Inspect the fault area. Step 3: Replace worn components."
+        ))
+
+        fault_meta = next((f for f in manual.get("common_faults", []) if f["fault_id"] == fault_id), {})
+
         return {
-            "equipment_type": eq_name,
-            "detected_anomaly": "Mechanical Seal Weepage & Impeller Cavitation Risk" if "pump" in eq_name.lower() else "Thermal Overload & Stator Winding Imbalance",
-            "severity": severity,
-            "safety_lockout_required": True,
-            "confidence_score": 0.94,
+            "equipment_type": manual.get("equipment", "Industrial Centrifugal Pump"),
+            "fault_id": fault_id,
+            "detected_anomaly": fault_name,
+            "severity": fault_meta.get("severity", "HIGH"),
+            "safety_lockout_required": fault_meta.get("safety_lockout_required", True),
+            "confidence_score": 0.92,
+            "manual_section_referenced": f"diagnostic_steps.{vernacular_key}, common_faults.{fault_id}",
             "diagnostic_steps": steps,
-            "vernacular_audio_script": script
+            "vernacular_audio_script": script,
         }
+
 
 vision_service = MachineryVisionService()

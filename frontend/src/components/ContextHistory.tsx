@@ -57,7 +57,7 @@ export const ContextHistory: React.FC<ContextHistoryProps> = ({
                     Turn #{turn.turn}
                   </span>
                   <span className="text-[11px] font-semibold text-slate-200 truncate max-w-[140px] sm:max-w-none">
-                    {turn.equipment}
+                    Centrifugal Pump
                   </span>
                 </div>
                 <div className="flex items-center gap-1 font-mono text-[10px]">
@@ -68,18 +68,27 @@ export const ContextHistory: React.FC<ContextHistoryProps> = ({
 
               <div className="text-[11px] text-slate-300">
                 <span className="text-slate-500">Query: </span>
-                <span className="italic font-medium">"{turn.user_query}"</span>
+                <span className="italic font-medium">"{(turn as any).query || (turn as any).user_query}"</span>
               </div>
 
               <div className="flex items-center justify-between pt-1 border-t border-slate-800/60 text-[10px] font-mono">
-                <span className="text-amber-300 truncate max-w-[180px]">
-                  Anomaly: {turn.anomaly}
+                <span className="text-amber-300 truncate max-w-[140px]">
+                  {(turn as any).fault || (turn as any).anomaly}
                 </span>
-                <span className={`px-1.5 py-0.2 rounded font-bold uppercase ${
-                  turn.severity === 'CRITICAL' ? 'text-rose-400 bg-rose-500/10' : 'text-amber-400 bg-amber-500/10'
-                }`}>
-                  {turn.severity}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {(turn as any).judge_score !== undefined && (
+                    <span className={`px-1.5 py-0.5 rounded font-bold ${
+                      (turn as any).judge_verdict === 'PASS' ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'
+                    }`}>
+                      Judge: {(turn as any).judge_score?.toFixed(1)}/10
+                    </span>
+                  )}
+                  <span className={`px-1.5 py-0.5 rounded font-bold uppercase ${
+                    turn.severity === 'CRITICAL' ? 'text-rose-400 bg-rose-500/10' : 'text-amber-400 bg-amber-500/10'
+                  }`}>
+                    {turn.severity}
+                  </span>
+                </div>
               </div>
             </div>
           );
