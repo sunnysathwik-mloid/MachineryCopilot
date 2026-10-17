@@ -117,6 +117,8 @@ async def diagnose_equipment(
         step_key=step_key
     )
 
+    full_audio_url = f"http://localhost:8000{audio_url}"
+
     # 4. Simulated State Management: Hold last 3 interactions
     current_turn = {
         "turn": len(SESSION_HISTORY) + 1,
@@ -126,7 +128,7 @@ async def diagnose_equipment(
         "equipment": diagnosis.get("equipment_type", "Industrial Centrifugal Pump"),
         "anomaly": diagnosis.get("detected_anomaly", "Mechanical Seal Weepage"),
         "severity": diagnosis.get("severity", "CRITICAL"),
-        "audio_url": audio_url
+        "audio_url": full_audio_url
     }
     
     # Append and maintain sliding window of max 3 turns
@@ -142,7 +144,7 @@ async def diagnose_equipment(
         confidence_score=diagnosis.get("confidence_score", 0.94),
         diagnostic_steps=diagnosis.get("diagnostic_steps", rag_manual.get("diagnostic_steps", [])),
         vernacular_text=vernacular_text,
-        vernacular_audio_url=audio_url,
+        vernacular_audio_url=full_audio_url,
         audio_source="pregenerated_cache" if is_pregenerated else "dynamic_tts",
         artificial_rag_delay_ms=1500,
         context_turn_count=len(SESSION_HISTORY),

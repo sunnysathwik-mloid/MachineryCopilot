@@ -7,5 +7,11 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-  }
+    proxy: {
+      '/audio': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
 })

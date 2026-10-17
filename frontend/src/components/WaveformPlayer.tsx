@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Zap, Radio } from 'lucide-react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Sparkles, Zap, Radio, AlertCircle, MessageSquare } from 'lucide-react';
 
 interface WaveformPlayerProps {
   audioUrl: string;
@@ -22,23 +22,49 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   const [duration, setDuration] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
-  
+  const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+
   // Total bars for the waveform visualization
   const NUM_BARS = 32;
   const [barHeights, setBarHeights] = useState<number[]>(
     Array.from({ length: NUM_BARS }, (_, i) => 20 + Math.sin(i * 0.4) * 15 + (i % 3) * 10)
   );
 
-  // Audio setup
+  // Reload audio element whenever audioUrl changes
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setAudioError(null);
+    setAutoplayBlocked(false);
+    audio.load();
+  }, [audioUrl]);
+
+  // Audio setup and listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration || 0);
+      setAudioError(null);
       if (autoPlay) {
-        audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        audio
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            setAutoplayBlocked(false);
+          })
+          .catch((err) => {
+            console.warn('Autoplay prevented by browser security policy:', err);
+            setIsPlaying(false);
+            setAutoplayBlocked(true);
+          });
       }
+    };
+
+    const handleCanPlay = () => {
+      if (audio.duration) setDuration(audio.duration);
     };
 
     const handleTimeUpdate = () => {
@@ -50,14 +76,24 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
       setCurrentTime(0);
     };
 
+    const handleError = (e: any) => {
+      console.warn('Audio element error:', audio.error, e);
+      setAudioError('Audio format or stream issue. You can click "Speak with Browser Voice" below.');
+      setIsPlaying(false);
+    };
+
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('canplay', handleCanPlay);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('canplay', handleCanPlay);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
     };
   }, [audioUrl, autoPlay]);
 
@@ -95,11 +131,44 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
   const togglePlay = () => {
     if (!audioRef.current) return;
+    setAutoplayBlocked(false);
+
     if (isPlaying) {
       audioRef.current.pause();
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       setIsPlaying(false);
     } else {
-      audioRef.current.play().then(() => setIsPlaying(true)).catch((e) => console.log('Play blocked', e));
+      audioRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((e) => {
+          console.warn('Manual play failed, falling back to Web Speech API:', e);
+          speakAloudFallback();
+        });
+    }
+  };
+
+  // Browser SpeechSynthesis fallback
+  const speakAloudFallback = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(vernacularText);
+      const langMap: Record<string, string> = {
+        ta: 'ta-IN',
+        hi: 'hi-IN',
+        te: 'te-IN',
+        kn: 'kn-IN',
+        mr: 'mr-IN',
+        en: 'en-IN',
+      };
+      utterance.lang = langMap[language] || 'en-US';
+      utterance.rate = playbackSpeed;
+      utterance.onstart = () => setIsPlaying(true);
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
@@ -139,19 +208,30 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
   return (
     <div className="bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/30 rounded-2xl p-5 shadow-2xl relative overflow-hidden">
       {/* Background radial glow */}
-      <div className={`absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none transition-opacity duration-500 ${isPlaying ? 'opacity-100' : 'opacity-30'}`} />
+      <div
+        className={`absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none transition-opacity duration-500 ${
+          isPlaying ? 'opacity-100' : 'opacity-30'
+        }`}
+      />
 
-      {/* Hidden audio element */}
-      <audio ref={audioRef} src={audioUrl} preload="auto" />
+      {/* Hidden audio element with crossOrigin */}
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        preload="auto"
+        crossOrigin="anonymous"
+      />
 
       {/* Top Meta Bar */}
       <div className="flex items-center justify-between mb-3 text-xs">
         <div className="flex items-center space-x-2">
-          <div className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider ${
-            audioSource === 'pregenerated_cache'
-              ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
-              : 'bg-purple-400/15 text-purple-300 border border-purple-400/30'
-          }`}>
+          <div
+            className={`flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold uppercase tracking-wider ${
+              audioSource === 'pregenerated_cache'
+                ? 'bg-amber-400/15 text-amber-300 border border-amber-400/30'
+                : 'bg-purple-400/15 text-purple-300 border border-purple-400/30'
+            }`}
+          >
             {audioSource === 'pregenerated_cache' ? (
               <>
                 <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
@@ -172,17 +252,59 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
 
         {/* Live Audio Streaming Signal */}
         <div className="flex items-center space-x-1.5 text-[11px] font-mono text-slate-400">
-          <Radio className={`w-3.5 h-3.5 ${isPlaying ? 'text-emerald-400 animate-pulse' : 'text-slate-600'}`} />
+          <Radio
+            className={`w-3.5 h-3.5 ${isPlaying ? 'text-emerald-400 animate-pulse' : 'text-slate-600'}`}
+          />
           <span className={isPlaying ? 'text-emerald-400 font-medium' : ''}>
-            {isPlaying ? 'VOICE ASSISTANT BROADCASTING' : 'READY TO PLAY'}
+            {isPlaying ? 'VOICE ASSISTANT BROADCASTING' : 'AUDIO READY'}
           </span>
         </div>
       </div>
 
+      {/* Browser Autoplay Notification Banner */}
+      {autoplayBlocked && (
+        <button
+          type="button"
+          onClick={togglePlay}
+          className="w-full mb-3 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center space-x-2 text-xs font-black shadow-lg shadow-amber-400/20 active:scale-[0.99] transition animate-pulse"
+        >
+          <Volume2 className="w-4 h-4 fill-slate-950" />
+          <span>Tap Here to Start Vernacular Spoken Instructions</span>
+        </button>
+      )}
+
+      {/* Error or Fallback notification */}
+      {audioError && (
+        <div className="mb-3 p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-300 flex items-center justify-between text-xs">
+          <div className="flex items-center space-x-2 min-w-0">
+            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span className="truncate">{audioError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={speakAloudFallback}
+            className="ml-2 px-2 py-1 rounded bg-amber-400 text-slate-950 font-bold text-[10px] uppercase whitespace-nowrap"
+          >
+            Speak Aloud
+          </button>
+        </div>
+      )}
+
       {/* Vernacular Spoken Script Preview */}
       <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-4">
-        <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1">
-          Vernacular Audio Transcript:
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+            Vernacular Audio Transcript:
+          </span>
+          <button
+            type="button"
+            onClick={speakAloudFallback}
+            className="text-[10px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 transition"
+            title="Read aloud with native voice"
+          >
+            <MessageSquare className="w-3 h-3" />
+            <span>Browser Voice</span>
+          </button>
         </div>
         <p className="text-sm font-medium text-amber-200 leading-relaxed font-sans">
           "{vernacularText}"
@@ -246,6 +368,7 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
           <button
             onClick={togglePlay}
             className="w-12 h-12 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center font-bold shadow-lg shadow-amber-400/20 active:scale-95 transition"
+            title={isPlaying ? 'Pause Vernacular Audio' : 'Play Vernacular Audio'}
           >
             {isPlaying ? (
               <Pause className="w-6 h-6 fill-slate-950" />
@@ -259,8 +382,7 @@ export const WaveformPlayer: React.FC<WaveformPlayerProps> = ({
             onClick={() => {
               if (audioRef.current) {
                 audioRef.current.currentTime = 0;
-                audioRef.current.play();
-                setIsPlaying(true);
+                audioRef.current.play().then(() => setIsPlaying(true)).catch(speakAloudFallback);
               }
             }}
             className="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition"

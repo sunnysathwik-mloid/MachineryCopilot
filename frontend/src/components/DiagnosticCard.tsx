@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShieldAlert, CheckSquare, Square, Wrench, Sparkles, CheckCircle2, AlertTriangle, FileText } from 'lucide-react';
 import { DiagnoseResponse } from '../types/diagnostic';
 import { WaveformPlayer } from './WaveformPlayer';
+import { resolveAudioUrl } from '../api/client';
 
 interface DiagnosticCardProps {
   diagnosis: DiagnoseResponse;
@@ -93,7 +94,7 @@ export const DiagnosticCard: React.FC<DiagnosticCardProps> = ({
           </div>
 
           <WaveformPlayer
-            audioUrl={diagnosis.vernacular_audio_url}
+            audioUrl={resolveAudioUrl(diagnosis.vernacular_audio_url)}
             vernacularText={diagnosis.vernacular_text}
             language={language}
             audioSource={diagnosis.audio_source}
